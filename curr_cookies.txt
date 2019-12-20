@@ -1,0 +1,6 @@
+{'domain': '.umich.edu', 'expiry': 1576899428, 'httpOnly': False, 'name': '_gid', 'path': '/', 'secure': False, 'value': 'GA1.2.1418638350.1576813029'}
+{'domain': 'leccap.engin.umich.edu', 'httpOnly': True, 'name': 'PHPSESSID', 'path': '/', 'secure': False, 'value': 'bq7mvn2hiu5n585dm11igihiq7'}
+{'domain': '.umich.edu', 'expiry': 1639885028, 'httpOnly': False, 'name': '_ga', 'path': '/', 'secure': False, 'value': 'GA1.2.1767365626.1576813029'}
+{'domain': '.umich.edu', 'expiry': 1576813088, 'httpOnly': False, 'name': '_gat', 'path': '/', 'secure': False, 'value': '1'}
+{'domain': 'leccap.engin.umich.edu', 'httpOnly': False, 'name': 'cosign-leccap.engin', 'path': '/', 'secure': True, 'value': 'bF-wOGJxVgRjN-uBYkK4GxyY38h0oy1ZxaouiuDFcra0zHSnlJlLwcarf7CBR40mOIRHd8pWQR6A5eTnbPVbU6hg8hJLrCMuQ0eoBN3KVeBvZHSUvZ3FHb2M19EH/1576813026'}
+{'domain': 'leccap.engin.umich.edu', 'httpOnly': False, 'name': 'AWSELB', 'path': '/', 'secure': False, 'value': '232FA185061E73DCB2F9CBBB5151DB73B103D1E6088CA889CD3E362F7F9F246964DD8E20494C9105AFDB1919BE42D2F8C34565FFA20B8B8B9B959B85BF73B13B29313F0C46'}
