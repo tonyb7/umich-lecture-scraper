@@ -11,13 +11,13 @@ def prompt_url():
 
 class DriverManager:
     def __init__(self, url):
-        self.__driver = webdriver.Chrome()
-        self.__driver.get(url)
+        self.driver = webdriver.Chrome()
+        self.driver.get(url)
         self.__url = url
 
     def __del__(self):
         print("Closing driver")
-        self.__driver.close()
+        self.driver.close()
 
     def scrape(self):
         self.__login()
@@ -31,13 +31,13 @@ class DriverManager:
     def __login(self):
         try:
             self.__load_cookies()
-            self.__driver.get(self.__url)
-            self.__recordings = self.__driver.find_element_by_id('recordings')
+            self.driver.get(self.__url)
+            self.__recordings = self.driver.find_element_by_id('recordings')
         except:
             print("No valid cookies saved")
             self.__input_creds()
-            self.__driver.implicitly_wait(60)
-            self.__recordings = self.__driver.find_element_by_id('recordings')
+            self.driver.implicitly_wait(60)
+            self.__recordings = self.driver.find_element_by_id('recordings')
             self.__save_cookies()
 
     def __load_cookies(self):
@@ -47,10 +47,10 @@ class DriverManager:
                 currentPlace = line[:-1]
                 self.__cookies.append(eval(currentPlace))
         for cookie in self.__cookies:
-            self.__driver.add_cookie(cookie)
+            self.driver.add_cookie(cookie)
 
     def __save_cookies(self):
-        self.__cookies = self.__driver.get_cookies()
+        self.__cookies = self.driver.get_cookies()
         with open('curr_cookies.txt', 'w') as filehandle:
             for listitem in self.__cookies:
                 filehandle.write('%s\n' % listitem)
@@ -58,15 +58,15 @@ class DriverManager:
     def __input_creds(self):
         uniqname = input("Please enter your uniqname: ")
         password = getpass.getpass("Please enter your password: ")
-        self.__driver.find_element_by_id("login").send_keys(uniqname)
-        self.__driver.find_element_by_id("password").send_keys(password)
-        self.__driver.find_element_by_id("loginSubmit").click()
+        self.driver.find_element_by_id("login").send_keys(uniqname)
+        self.driver.find_element_by_id("password").send_keys(password)
+        self.driver.find_element_by_id("loginSubmit").click()
 
     def __visit_video(self, url):
-        self.__driver.get(url)
-        self.__driver.implicitly_wait(12)
-        self.__driver.find_element_by_class_name("viewer-overlay-play-btn").click()
-        s3_url = self.__driver.find_element_by_tag_name('video').get_attribute('src')
+        self.driver.get(url)
+        self.driver.implicitly_wait(12)
+        self.driver.find_element_by_class_name("viewer-overlay-play-btn").click()
+        s3_url = self.driver.find_element_by_tag_name('video').get_attribute('src')
         self.__s3_urls.append(s3_url)
 
     def __save_s3_urls(self):
