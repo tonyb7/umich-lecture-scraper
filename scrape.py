@@ -1,6 +1,12 @@
 from selenium import webdriver
 import getpass
-import time
+import argparse
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--cookies", help="Turn on this flag if you have valid saved cookies",\
+        action="store_true")
+    return parser.parse_args()
 
 def prompt_url():
     print("Welcome to Umich Lecture Scraper")
@@ -14,6 +20,8 @@ class DriverManager:
         self.__driver = webdriver.Chrome()
         self.__driver.get(url)
         self.__url = url
+        self.__args = parse_args()
+        self.__s3_urls = []
 
     def __del__(self):
         print("Closing driver")
@@ -21,25 +29,21 @@ class DriverManager:
 
     def scrape(self):
         self.__login()
-        a_elts = self.__recordings.find_elements_by_class_name('list-group-item')
-        self.__s3_urls = []
-        for a_elt in a_elts:
-            self.__visit_video(a_elt.get_attribute('href'))
-            time.sleep(1)
+        self.__save_recording_urls()
+        for url in self.__recording_urls:
+            self.__visit_video(url)
         self.__save_s3_urls()
 
     def __login(self):
-        valid_cookies = input("Do you have valid cookies? (Y/N) ")
-        if valid_cookies == 'Y':
+        if self.__args.cookies:
             self.__load_cookies()
             self.__driver.get(self.__url)
-            self.__recordings = self.__driver.find_element_by_id('recordings')
         else:
-            print("No valid cookies saved")
-            #self.__restore_backup_cookies()
             self.__driver.implicitly_wait(60)
             self.__input_creds()
-            self.__recordings = self.__driver.find_element_by_id('recordings')
+
+        self.__recordings = self.__driver.find_element_by_id('recordings')
+        if not self.__args.cookies:
             self.__save_cookies()
 
     def __load_cookies(self):
@@ -48,7 +52,6 @@ class DriverManager:
             for line in filehandle:
                 currentPlace = line[:-1]
                 self.__cookies.append(eval(currentPlace))
-        #self.__backup_cookies = self.__driver.get_cookies()
         for cookie in self.__cookies:
             self.__driver.add_cookie(cookie)
 
@@ -57,11 +60,6 @@ class DriverManager:
         with open('curr_cookies.txt', 'w') as filehandle:
             for listitem in self.__cookies:
                 filehandle.write('%s\n' % listitem)
-
-    def __restore_backup_cookies(self):
-        self.__driver.delete_all_cookies()
-        for cookie in self.__backup_cookies:
-            self.__driver.add_cookie(cookie)
 
     def __input_creds(self):
         uniqname = input("Please enter your uniqname: ")
@@ -77,6 +75,12 @@ class DriverManager:
         self.__driver.find_element_by_class_name("viewer-overlay-play-btn").click()
         s3_url = self.__driver.find_element_by_tag_name('video').get_attribute('src')
         self.__s3_urls.append(s3_url)
+
+    def __save_recording_urls(self):
+        a_elts = self.__recordings.find_elements_by_class_name('list-group-item')
+        self.__recording_urls = []
+        for a_elt in a_elts:
+            self.__recording_urls.append(a_elt.get_attribute('href'))
 
     def __save_s3_urls(self):
         with open('s3_url_list.txt', 'w') as filehandle:
