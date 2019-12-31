@@ -10,6 +10,7 @@ def parse_args():
         action="store_true")
     return parser.parse_args()
 
+
 def prompt_url():
     print("Welcome to Umich Lecture Scraper")
     print("Scrapes websites like: https://leccap.engin.umich.edu/leccap/site/sfa0sikeywiehigrodj")
