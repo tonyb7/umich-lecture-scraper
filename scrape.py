@@ -1,6 +1,8 @@
 from selenium import webdriver
 import getpass
 import argparse
+from concurrent.futures import ThreadPoolExecutor
+import time
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -28,10 +30,16 @@ class DriverManager:
         self.__driver.close()
 
     def scrape(self):
+        self.__driver.implicitly_wait(60)
         self.__login()
         self.__save_recording_urls()
+        video_urls = []
         for url in self.__recording_urls:
-            self.__visit_video(url)
+            video_urls.append(url)
+        
+        with ThreadPoolExecutor() as executor:
+            executor.map(self.__visit_video, video_urls)
+
         self.__save_s3_urls()
 
     def __login(self):
@@ -39,7 +47,6 @@ class DriverManager:
             self.__load_cookies()
             self.__driver.get(self.__url)
         else:
-            self.__driver.implicitly_wait(60)
             self.__input_creds()
 
         self.__recordings = self.__driver.find_element_by_id('recordings')
@@ -71,8 +78,6 @@ class DriverManager:
 
     def __visit_video(self, url):
         self.__driver.get(url)
-        self.__driver.implicitly_wait(12)
-        self.__driver.find_element_by_class_name("viewer-overlay-play-btn").click()
         s3_url = self.__driver.find_element_by_tag_name('video').get_attribute('src')
         self.__s3_urls.append(s3_url)
 
@@ -91,10 +96,15 @@ def main():
     url = prompt_url()
     driverManager = DriverManager(url)
 
+    start = time.perf_counter()
+
     try:
         driverManager.scrape()
     except Exception as e:
         print("Unexcepted exception raised: " + str(e))
+
+    finish = time.perf_counter()
+    print(f"Scraping took {round(finish - start, 2)} seconds")
 
 if __name__ == '__main__':
     main()
