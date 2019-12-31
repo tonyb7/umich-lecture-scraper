@@ -17,8 +17,22 @@ def prompt_url():
     print("Scraping...")
     return url
 
+# TODO
+def load_cookies(driver):
+    cookies = []
+    with open('curr_cookies.txt', 'r') as filehandle:
+        for line in filehandle:
+            currentPlace = line[:-1]
+            cookies.append(eval(currentPlace))
+    for cookie in cookies:
+        driver.add_cookie(cookie)
+
 class DriverManager:
     def __init__(self, url):
+        self.chrome_options = webdriver.ChromeOptions()
+        self.chrome_options.add_argument("--headless")
+        self.__driver = webdriver.Chrome(chrome_options=self.chrome_options)
+
         self.__driver = webdriver.Chrome()
         self.__driver.get(url)
         self.__url = url
@@ -33,12 +47,10 @@ class DriverManager:
         self.__driver.implicitly_wait(60)
         self.__login()
         self.__save_recording_urls()
-        video_urls = []
-        for url in self.__recording_urls:
-            video_urls.append(url)
-        
+       
+        print(self.__recording_urls)
         with ThreadPoolExecutor() as executor:
-            executor.map(self.__visit_video, video_urls)
+            self.__s3_urls = executor.map(self.__visit_video, self.__recording_urls)
 
         self.__save_s3_urls()
 
@@ -76,10 +88,25 @@ class DriverManager:
         self.__driver.find_element_by_id("loginSubmit").click()
         print("Now please authenticate on Duo...")
 
+    # def __visit_video(self, url):
+    #     print(f"visiting {url}")
+    #     self.__driver.get(url)
+    #     self.__driver.implicitly_wait(10)
+    #     s3_url = self.__driver.find_element_by_tag_name('video').get_attribute('src')
+    #     print(f"Got url {s3_url}")
+    #     self.__s3_urls.append(s3_url)
+
     def __visit_video(self, url):
-        self.__driver.get(url)
-        s3_url = self.__driver.find_element_by_tag_name('video').get_attribute('src')
-        self.__s3_urls.append(s3_url)
+        driver = webdriver.Chrome(chrome_options=self.chrome_options)
+        driver.get(self.__url)
+        load_cookies(driver)
+        driver.get(self.__url)
+        driver.get(url)
+        driver.implicitly_wait(10)
+        s3_url = driver.find_element_by_tag_name('video').get_attribute('src')
+        print(f"Got url {s3_url}")
+        driver.close()
+        return s3_url
 
     def __save_recording_urls(self):
         a_elts = self.__recordings.find_elements_by_class_name('list-group-item')
